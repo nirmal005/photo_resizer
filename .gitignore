@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local settings (commit .env.example instead)
+.env
+
+# Generated output
+*.pdf
+sheet_index.txt
+low_res_warnings.txt
+
+# Personal photos, in case a photo folder ends up in the project
+processed/
+*.jpg
+*.jpeg
+*.png
+*.tif
+*.tiff
+*.heic
+*.webp
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
