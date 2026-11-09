@@ -168,6 +168,7 @@ Then cut along the crop marks: one cut across the middle, then trim the sides an
 | `batch_1.pdf`, `batch_2.pdf`, … | The printable sheets, `--batch` sheets per file. |
 | `sheet_index.txt` | Which photos are on which page of which batch (e.g. `batch_3.pdf page 2: 12345_a.jpg \| 12346_b.jpg`), and how much `--auto` brightened each one. Use it to reprint a sheet that misfed. |
 | `low_res_warnings.txt` | Only if needed: photos smaller than 1500 x 2100 px (300 ppi at 5x7), which may print soft. Replaced on each run that finds some. |
+| `unreadable_files.txt` | Only if needed: files with a photo extension that couldn't be opened (corrupt or not really images). They are skipped and left in SRC. |
 | `brightness_test.pdf` | Only with `--test-sheet`. |
 
 Running again into the same OUT folder **continues the numbering**: if `batch_1.pdf`–`batch_4.pdf` are already there, the next run starts at `batch_5.pdf`. New lines are added to the end of `sheet_index.txt`. Nothing is overwritten.
@@ -213,6 +214,8 @@ Tip: writing output to its own folder (like `Downloads\prints`) keeps the PDFs f
 | Problem | Fix |
 |---|---|
 | `No new photos found in ...` | Every photo has already been printed and is in `SRC\processed`. Add new photos, or move some back to reprint them. Also check the SRC path and file extensions. |
+| Files starting with `._` (e.g. `._41229_x.jpg`) | Hidden macOS metadata files, not photos. They are skipped automatically and can be deleted. |
+| `... could not be opened as images and were skipped` | See `unreadable_files.txt` in OUT. Re-copy or re-export those files. |
 | Some photos have no watermark | Their file names don't start with 5 digits and an underscore (e.g. `12345_`). |
 | Watermark hard to see | Raise `WATERMARK_OPACITY` or `WATERMARK_SIZE` in `.env`, or change `WATERMARK_COLOR` (white disappears on bright skies). |
 | `.env` changes ignored | `.env` must be in the same folder as `main.py`, and the watermark only runs with `--enable_watermark true`. |

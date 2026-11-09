@@ -373,12 +373,30 @@ def main():
 
     src = opts.src.resolve()
     processed = src / PROCESSED_DIR
-    files = sorted(p for p in src.rglob("*")
-                   if p.is_file() and p.suffix.lower() in EXTS and processed not in p.parents)
+    # skip hidden files: macOS copies leave a "._name.jpg" metadata file next to every photo
+    candidates = sorted(p for p in src.rglob("*")
+                        if p.is_file() and not p.name.startswith(".")
+                        and p.suffix.lower() in EXTS and processed not in p.parents)
+
+    # skip (and report) anything that isn't a readable image instead of crashing;
+    # skipped files are not moved to processed
+    files, warnings, unreadable = [], [], []
+    for f in candidates:
+        try:
+            w = low_res_warning(f)
+        except Exception as e:
+            unreadable.append(f"{f}: {e}")
+            continue
+        files.append(f)
+        if w:
+            warnings.append(w)
+    if unreadable:
+        (opts.out / "unreadable_files.txt").write_text("\n".join(unreadable) + "\n", encoding="utf-8")
+        print(f"{len(unreadable)} files could not be opened as images and were skipped "
+              f"- see unreadable_files.txt")
     if not files:
         sys.exit(f"No new photos found in {opts.src} (already-printed photos are in {processed})")
 
-    warnings = [w for f in files if (w := low_res_warning(f))]
     if opts.enable_watermark:
         no_code = [f.name for f in files if not photo_code(f)]
         if no_code:

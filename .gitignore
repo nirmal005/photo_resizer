@@ -24,6 +24,7 @@ env/
 *.pdf
 sheet_index.txt
 low_res_warnings.txt
+unreadable_files.txt
 
 # Personal photos, in case a photo folder ends up in the project
 processed/
