@@ -309,6 +309,16 @@ def jpeg_bytes(img, ppi):
     return buf.getvalue()
 
 
+def natural_key(s: str):
+    """Case-insensitive, with digit runs compared as numbers: IMG_2 sorts before IMG_10."""
+    return [(0, int(t), t) if t.isdigit() else (1, 0, t) for t in re.split(r"(\d+)", s.lower()) if t]
+
+
+def name_order(p: Path):
+    """Print order: by file name, whatever subfolder the photo is in; full path breaks ties."""
+    return natural_key(p.name), natural_key(str(p))
+
+
 def next_batch_number(out: Path) -> int:
     """1 for an empty folder, otherwise one more than the highest batch_N.pdf there."""
     nums = [int(m.group(1)) for p in out.iterdir() if (m := BATCH_RE.match(p.name))]
@@ -374,9 +384,10 @@ def main():
     src = opts.src.resolve()
     processed = src / PROCESSED_DIR
     # skip hidden files: macOS copies leave a "._name.jpg" metadata file next to every photo
-    candidates = sorted(p for p in src.rglob("*")
-                        if p.is_file() and not p.name.startswith(".")
-                        and p.suffix.lower() in EXTS and processed not in p.parents)
+    candidates = sorted((p for p in src.rglob("*")
+                         if p.is_file() and not p.name.startswith(".")
+                         and p.suffix.lower() in EXTS and processed not in p.parents),
+                        key=name_order)
 
     # skip (and report) anything that isn't a readable image instead of crashing;
     # skipped files are not moved to processed

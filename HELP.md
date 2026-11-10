@@ -36,7 +36,11 @@ python .\main.py <SRC> <OUT> [options]
 | `SRC` | Folder with your photos. **Subfolders are included**, except `SRC\processed`. Supported: `.jpg .jpeg .png .tif .tiff .webp` (`.heic` see Troubleshooting). |
 | `OUT` | Folder where the PDFs go. It is created if it doesn't exist. |
 
-Photos are placed in **alphabetical order by path**, two per sheet.
+Photos are placed **in order of their file name**, two per sheet, so `41229_…` comes before `41230_…`. The order is:
+
+- the same no matter which subfolder a photo is in;
+- not case-sensitive (`img_1` and `IMG_2` sort together);
+- numeric for numbers in names, so `IMG_2.jpg` comes before `IMG_10.jpg`.
 
 Show the built-in help at any time:
 
