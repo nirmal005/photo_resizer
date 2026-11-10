@@ -116,9 +116,10 @@ Prints usually look darker than the screen. There are two separate fixes, and yo
 | Option | Default | Description |
 |---|---|---|
 | `--lift X` | `0.0` | Same brightening for every photo, to make up for your printer/paper. `0.10` = slight, `0.15` = moderate, `0.20` = noticeable, `0.30` = strong. Find the right value with `--test-sheet`. |
-| `--auto` | off | Per photo: dark or underexposed photos get brightened toward a normal exposure. Photos that are already bright are left alone. |
-| `--auto-target T` | `0.45` | Average brightness (0–1) that `--auto` aims for. Higher = brighter results. |
-| `--auto-max M` | `0.35` | The most `--auto` may brighten any single photo. Stops night shots from turning grey. |
+| `--auto` | off | Per photo: measures the brightness of the **center** of the photo (where the subject usually is) and brightens the **whole** photo until the center looks normally exposed. A bright sky or white wall around a dark face no longer fools it. Photos whose center is already bright are left alone. |
+| `--auto-target T` | `0.50` | Average brightness (0–1) that `--auto` aims for in the center. Higher = brighter results. Try `0.55` if prints are still dark. |
+| `--auto-max M` | `0.60` | The most `--auto` may brighten any single photo (same scale as `--lift`). Stops night shots from turning grey. |
+| `--auto-center C` | `0.5` | How much of the photo `--auto` measures, as a fraction of width and height around the center. `0.5` = the central half, `0.3` = tighter on the subject, `1` = the whole photo (the old behavior). |
 | `--test-sheet PHOTO` | – | Makes **only** a calibration sheet (`brightness_test.pdf`) from one photo, showing it in 10 bands from `+0.00` to `+0.50`. No other sheets are made. |
 
 ### Sharpening
@@ -225,7 +226,7 @@ Tip: writing output to its own folder (like `Downloads\prints`) keeps the PDFs f
 | `.env` changes ignored | `.env` must be in the same folder as `main.py`, and the watermark only runs with `--enable_watermark true`. |
 | Error opening `.heic` files | Pillow can't read HEIC by itself. Convert them to JPG first, or move them out of the folder. |
 | Prints are not exactly 5x7 | Print at **Actual size / 100%**, not "Fit to page". |
-| Prints still too dark | Raise `--lift` (or re-run `--test-sheet`), or add `--auto`. |
+| Prints still too dark | Add `--auto` if you haven't. Then raise `--auto-target` (e.g. `0.55`) and/or `--lift`, or re-run `--test-sheet`. `sheet_index.txt` shows how much auto added to each photo. |
 | Prints look washed out / grey | Lower `--lift`, or lower `--auto-max`. |
 | Halos around edges | Lower `--sharpen` (try 0.3) or set it to 0. |
 | Very slow / huge PDFs | Use `--ppi 360` (default) unless photos are ≥ 3600 x 5040 px. |

@@ -76,10 +76,17 @@ def apply_gamma(img: Image.Image, g: float) -> Image.Image:
     return img.point(lut * 3)
 
 
-def auto_lift(img: Image.Image, target: float, max_lift: float) -> float:
+def auto_lift(img: Image.Image, target: float, max_lift: float, center: float = 0.5) -> float:
     """How much to brighten so the photo's average brightness reaches `target` (0-1).
+    Only the middle of the photo is measured (`center` = fraction of width and height,
+    0.5 = the central half), because that's usually where the subject is; a bright sky
+    or dark border at the edges shouldn't decide the exposure. The resulting lift is
+    then applied to the whole photo.
     Only brightens, never darkens, and is capped so night shots don't turn grey."""
-    small = img.convert("L").copy()
+    w, h = img.size
+    cw, ch = max(1, round(w * center)), max(1, round(h * center))
+    left, top = (w - cw) // 2, (h - ch) // 2
+    small = img.crop((left, top, left + cw, top + ch)).convert("L")
     small.thumbnail((400, 400))
     hist = small.histogram()
     total = sum(hist)
@@ -206,7 +213,7 @@ def prepare(path: Path, slot_w: int, slot_h: int, opts) -> tuple[Image.Image, fl
         img = ImageOps.contain(img, (slot_w, slot_h), Image.LANCZOS)
     else:
         img = ImageOps.fit(img, (slot_w, slot_h), Image.LANCZOS, centering=(0.5, 0.5))
-    a = auto_lift(img, opts.auto_target, opts.auto_max) if opts.auto else 0.0
+    a = auto_lift(img, opts.auto_target, opts.auto_max, opts.auto_center) if opts.auto else 0.0
     img = apply_gamma(img, gamma_for_lift(a) * gamma_for_lift(opts.lift))
     img = sharpen(img, opts.sharpen, opts.ppi)
 
@@ -351,9 +358,13 @@ def main():
     ap.add_argument("--lift", type=float, default=0.0,
                     help="brighten every photo by this much (0.10 = slight, 0.20 = noticeable)")
     ap.add_argument("--auto", action="store_true", help="also brighten dark photos individually")
-    ap.add_argument("--auto-target", type=float, default=0.45,
-                    help="average brightness --auto aims for, 0-1 (default 0.45)")
-    ap.add_argument("--auto-max", type=float, default=0.35, help="most --auto may brighten one photo")
+    ap.add_argument("--auto-target", type=float, default=0.50,
+                    help="average brightness of the photo's center that --auto aims for, 0-1 (default 0.50)")
+    ap.add_argument("--auto-max", type=float, default=0.60,
+                    help="most --auto may brighten one photo (default 0.60)")
+    ap.add_argument("--auto-center", type=float, default=0.5,
+                    help="part of the photo --auto measures: fraction of width and height around "
+                         "the center (0.5 = central half, 1 = whole photo; default 0.5)")
     ap.add_argument("--sharpen", type=float, default=0.0, metavar="FACTOR",
                     help="sharpen every photo by this factor (0 = off, 0.5 = subtle, 1 = strong; default 0)")
     ap.add_argument("--enable_watermark", "--enable-watermark", dest="enable_watermark",
@@ -368,6 +379,10 @@ def main():
         ap.error("--sharpen must be 0 or higher")
     if opts.batch < 1:
         ap.error("--batch must be 1 or higher")
+    if not 0 < opts.auto_center <= 1:
+        ap.error("--auto-center must be above 0 and at most 1")
+    if not 0 < opts.auto_target < 1:
+        ap.error("--auto-target must be between 0 and 1")
     opts.wm = load_watermark_settings(ap) if opts.enable_watermark else None
     opts.out.mkdir(parents=True, exist_ok=True)
 
